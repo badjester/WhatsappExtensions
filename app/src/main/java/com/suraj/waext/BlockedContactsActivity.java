@@ -276,10 +276,20 @@ public class BlockedContactsActivity extends AppCompatActivity implements WhiteL
     @Override
     protected void onPause() {
         super.onPause();
-        File prefsDir = new File(this.getApplicationInfo().dataDir, "shared_prefs");
+
+        String datadirPath = this.getApplicationInfo().dataDir;
+
+        File prefsDir = new File(datadirPath, "shared_prefs");
         File prefsFile = new File(prefsDir, Utils.MYPREFS + ".xml");
         if (prefsFile.exists()) {
             prefsFile.setReadable(true, false);
+        }
+
+        // nougat+ extra fix
+        File dataDir = new File(datadirPath);
+        if (dataDir.exists() && dataDir.isDirectory()) {
+            dataDir.setReadable(true, false);
+            dataDir.setExecutable(true, false);
         }
     }
 
