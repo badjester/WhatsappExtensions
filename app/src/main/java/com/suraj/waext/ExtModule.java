@@ -93,7 +93,7 @@ public class ExtModule implements IXposedHookLoadPackage, IXposedHookZygoteInit,
     private static boolean enableHighlight = false;
     private static boolean enableHideSeen = false;
     private static boolean isGroup = false;
-    private static boolean exceptionThrown = true;
+    private static boolean archiveFieldSet = false;
     private static boolean enableHideCamera = false;
     private static boolean hideReadReceipts = false;
     private static boolean replaceCallButton = false;
@@ -910,6 +910,10 @@ public class ExtModule implements IXposedHookLoadPackage, IXposedHookZygoteInit,
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 super.afterHookedMethod(param);
 
+                if (param.args == null) {
+                    return;
+                }
+
                 if (param.args[0] == null) {
                     return;
                 }
@@ -918,21 +922,25 @@ public class ExtModule implements IXposedHookLoadPackage, IXposedHookZygoteInit,
                     return;
                 }
 
-                if (exceptionThrown) {
-                    if (param.args[0].toString().contains("@")) {
-                        archiveClass = param.getResult().getClass();
+                // Return if not a WhatsApp number
+                if (!param.args[0].toString().contains("@") || !param.args[0].toString().contains("whatsapp")) {
+                    return;
+                }
 
-                        for (Field field : archiveClass.getDeclaredFields()) {
-                            if (field.getType().getName().equals("boolean")) {
-                                archiveBooleanFieldName = field.getName();
-                                //XposedBridge.log("s name set");
-                                exceptionThrown = false;
-                            }
+                if(!archiveFieldSet){
+
+                    archiveClass = param.getResult().getClass();
+
+                    for (Field field : archiveClass.getDeclaredFields()) {
+
+                        if (field.getType().getName().equals("boolean")) {
+
+                            archiveBooleanFieldName = field.getName();
+                            // XposedBridge.log("Archived boolean field: "+archiveBooleanFieldName);
+                            archiveFieldSet = true;
+                            break;
                         }
-                    } else {
-                        return;
                     }
-
                 }
 
                 if (!(archiveClass != null && archiveClass.isInstance(param.getResult()))) {
