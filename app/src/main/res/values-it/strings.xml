@@ -139,18 +139,25 @@
     <string name="restore">Ripristino</string>
     <!-- end -->
 
-    <string name="stats">Stats</string>
-    <string name="messagesReceived">Messages Received</string>
-    <string name="messagesSent">Messages Sent</string>
-    <string name="messageTotal">Total</string>
+    <string name="stats">Statistiche</string>
+    <string name="messagesReceived">Messaggi Ricevuti</string>
+    <string name="messagesSent">Messaggi Inviati</string>
+    <string name="messageTotal">Totale</string>
 
     <!-- this is date. for example from 8/12/2016 to 17/01/2017 -->
-    <string name="messagesTimespan">From %1$s to %2$s</string>
-    <string name="title_activity_stats">Stats</string>
-    <string name="hide_status_tab">Hide status tab</string>
-    <string name="block_contacts">Permanently hide messages</string>
+    <string name="messagesTimespan">Da %1$s a %2$s</string>
+    <string name="title_activity_stats">Statistiche</string>
+    <string name="hide_status_tab">Nascondi Tab Stato</string>
+    <string name="block_contacts">Nascondi i messaggi permanentemente</string>
 
-    <string name="hide_toast_message">Hide toasts</string>
+    <string name="hide_toast_message">Nascondi avvisi</string>
+
+    <!-- needs to be translated -->
+    <string name="prevent_delete">Disable remote deletion</string>
+    <string name="message_deleted">%1$s tried to delete a message</string>
+    <string name="message_deleted_group">A message from group %1$s deleted</string>
+    <string name="message_deleted_unknown">Someone tried to delete a message, cannot determine who</string>
+    <string name="prevent_delete_notification">Notify about deletion</string>
 
 
 </resources>

@@ -1,13 +1,14 @@
 package com.suraj.waext;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.view.View;
 import android.widget.CheckBox;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
 
 /**
  * Created by suraj on 24/1/17.
@@ -56,7 +57,7 @@ public class Utils {
                 if (checkBox.isChecked() && onToast) {
                     Toast.makeText(context, onMessage, Toast.LENGTH_SHORT).show();
 
-                } else if (!checkBox.isChecked() && !offToast) {
+                } else if (!checkBox.isChecked() && offToast) {
                     Toast.makeText(context, offMessage, Toast.LENGTH_SHORT).show();
                 }
                 editor.apply();
@@ -64,27 +65,61 @@ public class Utils {
         });
     }
 
-    public static void setContactNameFromDataase(final TextView textView, final String jid) {
-        (new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... voids) {
-                String[] arr = WhatsAppDatabaseHelper.execSQL("/data/data/com.whatsapp/databases/wa.db", "select display_name from wa_contacts where jid like " + '"' + jid + '"');
+    public static String getContactNameFromDatabase(final String jid) throws WhatsAppDBException {
+        String[] arr = WhatsAppDatabaseHelper.execSQL("/data/data/com.whatsapp/databases/wa.db", "select display_name from wa_contacts where jid like " + '"' + jid + '"');
+        if (arr.length > 0) {
+            return arr[0];
+        } else {
+            throw new WhatsAppDBException("No contact found for given number");
+        }
+    }
 
-                if (arr != null) {
-                    return arr[0];
-                }
-                return null;
-            }
+    public static void setPreferencesRW(Context context) {
+        String datadir = context.getApplicationInfo().dataDir;
+        System.out.println(datadir);
 
-            @Override
-            protected void onPostExecute(String s) {
-                super.onPostExecute(s);
-                if (s == null)
-                    textView.setText("Cant retrieve contact name");
-                else
-                    textView.setText(s);
+        // marshmallow+
+        File p = new File(datadir + "/shared_prefs/" + Utils.MYPREFS + ".xml");
+        if (p.exists()) {
+            p.setReadable(true, false);
+        }
 
-            }
-        }).execute();
+        // nougat+ extra fix
+        p = new File(datadir);
+        if (p.exists() && p.isDirectory()) {
+            p.setReadable(true, false);
+            p.setExecutable(true, false);
+        }
+        /*final File prefsDir = new File(context.getApplicationInfo().dataDir, "shared_prefs");
+
+        final File prefsFile = new File(prefsDir, Utils.MYPREFS + ".xml");
+
+        final File dataDir = new File(context.getApplicationInfo().dataDir);
+
+        try {
+            (new Thread() {
+                String cmd1[] = {"su", "-c",
+                        "chmod 777 /data/data/com.suraj.waext" };
+
+                Process p1  = Runtime.getRuntime().exec(cmd1);
+
+                String cmd[] = {"su", "-c",
+                        "chmod -R 777 /data/data/com.suraj.waext"};
+                Process p = Runtime.getRuntime().exec(cmd);
+
+            }).start();
+        } catch (Exception e) {
+
+        }*/
+
+    }
+
+    public static boolean toastAndExitIfWaDbException(Object object, Activity activity) {
+        if (object instanceof WhatsAppDBException) {
+            Toast.makeText(activity, ((WhatsAppDBException) object).getMessage(), Toast.LENGTH_SHORT).show();
+            activity.finish();
+            return true;
+        }
+        return false;
     }
 }

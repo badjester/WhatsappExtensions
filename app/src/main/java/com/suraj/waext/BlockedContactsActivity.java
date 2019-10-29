@@ -1,6 +1,6 @@
 package com.suraj.waext;
 
-import android.content.Context;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -16,7 +16,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,6 +43,7 @@ public class BlockedContactsActivity extends AppCompatActivity implements WhiteL
 
     private FloatingActionButton fab;
 
+    @SuppressLint("StaticFieldLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,7 +61,7 @@ public class BlockedContactsActivity extends AppCompatActivity implements WhiteL
         if (blockedContactsSet.size() == 0)
             Toast.makeText(getApplicationContext(), "List is empty.", Toast.LENGTH_SHORT).show();
 
-        fab = (FloatingActionButton) findViewById(R.id.fbAddToBlockedList);
+        fab = findViewById(R.id.fbAddToBlockedList);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -70,19 +70,27 @@ public class BlockedContactsActivity extends AppCompatActivity implements WhiteL
         });
 
 
-        (new AsyncTask<Void, Void, Void>() {
+        (new AsyncTask<Void, Void, Object>() {
             @Override
-            protected Void doInBackground(Void... params) {
-                numberToNameHashMap = WhatsAppDatabaseHelper.getNumberToNameHashMap();
-                nameToNumberHashMap = WhatsAppDatabaseHelper.getNameToNumberHashMap();
-                groupNumberToNameHashMap = WhatsAppDatabaseHelper.getGroupNumberToNameHashMap();
-                groupNameToNumberHashMap = WhatsAppDatabaseHelper.getGroupNameToNumberHashMap();
+            protected Object doInBackground(Void... params) {
+                try {
+                    numberToNameHashMap = WhatsAppDatabaseHelper.getNumberToNameHashMap();
+                    nameToNumberHashMap = WhatsAppDatabaseHelper.getNameToNumberHashMap();
+                    groupNumberToNameHashMap = WhatsAppDatabaseHelper.getGroupNumberToNameHashMap();
+                    groupNameToNumberHashMap = WhatsAppDatabaseHelper.getGroupNameToNumberHashMap();
+                } catch (WhatsAppDBException ex) {
+                    return ex;
+                }
                 return null;
             }
 
             @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
+            protected void onPostExecute(Object object) {
+                super.onPostExecute(object);
+
+                if (Utils.toastAndExitIfWaDbException(object, BlockedContactsActivity.this)) {
+                    return;
+                }
 
                 buildArrayList();
 
@@ -186,6 +194,7 @@ public class BlockedContactsActivity extends AppCompatActivity implements WhiteL
         return true;
     }
 
+    @SuppressLint("StaticFieldLeak")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -226,23 +235,25 @@ public class BlockedContactsActivity extends AppCompatActivity implements WhiteL
                                     value = groupNameToNumberHashMap.get(name);
                                     localIsGroup = true;
                                 }
-                                if (value instanceof String) {
-                                    blockedContactsSet.remove(value.toString());
-                                    WhatsAppDatabaseHelper.clearNullItemsFromMessages(localIsGroup ? value.toString() + "@g.us" : value + "@s.whatsapp.net");
-                                } else if (value instanceof List) {
-                                    for (Object number : (List) value) {
-                                        blockedContactsSet.remove(number.toString());
-                                        WhatsAppDatabaseHelper.clearNullItemsFromMessages(localIsGroup ? number.toString() + "@g.us" : number + "@s.whatsapp.net");
-
+                                try {
+                                    if (value instanceof String) {
+                                        blockedContactsSet.remove(value.toString());
+                                        WhatsAppDatabaseHelper.clearNullItemsFromMessages(localIsGroup ? value.toString() + "@g.us" : value + "@s.whatsapp.net");
+                                    } else if (value instanceof List) {
+                                        for (Object number : (List) value) {
+                                            blockedContactsSet.remove(number.toString());
+                                            WhatsAppDatabaseHelper.clearNullItemsFromMessages(localIsGroup ? number.toString() + "@g.us" : number + "@s.whatsapp.net");
+                                        }
                                     }
+                                    iterator.remove();
+                                } catch (WhatsAppDBException ex) {
+                                    Log.e(ExtModule.PACKAGE_NAME, ex.getMessage());
                                 }
 
-                                iterator.remove();
                             }
 
                             i++;
                         }
-
                         deleteItemsSet.clear();
 
                         return null;
@@ -276,21 +287,7 @@ public class BlockedContactsActivity extends AppCompatActivity implements WhiteL
     @Override
     protected void onPause() {
         super.onPause();
-
-        String datadirPath = this.getApplicationInfo().dataDir;
-
-        File prefsDir = new File(datadirPath, "shared_prefs");
-        File prefsFile = new File(prefsDir, Utils.MYPREFS + ".xml");
-        if (prefsFile.exists()) {
-            prefsFile.setReadable(true, false);
-        }
-
-        // nougat+ extra fix
-        File dataDir = new File(datadirPath);
-        if (dataDir.exists() && dataDir.isDirectory()) {
-            dataDir.setReadable(true, false);
-            dataDir.setExecutable(true, false);
-        }
+        Utils.setPreferencesRW(this);
     }
 
 }

@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -94,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
         Utils.setUpCheckBox(this, checkBoxDeliveryReports, "hideDeliveryReports", false, "", false, "");
         Utils.setUpCheckBox(this, (CheckBox) findViewById(R.id.chkboxalwaysonline), "alwaysOnline", true, getApplicationContext().getString(R.string.last_seen_hidden), false, "");
         //Utils.setUpCheckBox(this, (CheckBox) findViewById(R.id.chkboxBlockContacts), "blockContacts", false, "", false, "");
-
+        Utils.setUpCheckBox(this, (CheckBox) findViewById(R.id.chkboxPreventDeletion), "preventRemoteDeletion", false, "", false, "");
+        Utils.setUpCheckBox(this, (CheckBox) findViewById(R.id.chkboxPreventDeletionNotification), "remoteDeletionNotification", false, "", false, "");
 
         findViewById(R.id.imgbtnreceiptsetting).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final CheckBox checkBoxBlockedContacts = (CheckBox) findViewById(R.id.chkboxBlockContacts);
+        final CheckBox checkBoxBlockedContacts = findViewById(R.id.chkboxBlockContacts);
         checkBoxBlockedContacts.setChecked(sharedPreferences.getBoolean("blockContacts", false));
 
         checkBoxBlockedContacts.setOnClickListener(new View.OnClickListener() {
@@ -124,8 +126,12 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         for (String value : blockedContactsSet) {
-                            WhatsAppDatabaseHelper.clearNullItemsFromMessages(value + "@g.us");
-                            WhatsAppDatabaseHelper.clearNullItemsFromMessages(value + "@s.whatsapp.net");
+                            try {
+                                WhatsAppDatabaseHelper.clearNullItemsFromMessages(value + "@g.us");
+                                WhatsAppDatabaseHelper.clearNullItemsFromMessages(value + "@s.whatsapp.net");
+                            } catch (WhatsAppDBException e) {
+                                Log.e(ExtModule.PACKAGE_NAME, e.getMessage());
+                            }
                         }
                     }
                 }).start();
@@ -273,20 +279,8 @@ public class MainActivity extends AppCompatActivity {
             this.unregisterReceiver(unlockReceiver);
         }
 
-        String datadirPath = this.getApplicationInfo().dataDir;
+        Utils.setPreferencesRW(this);
 
-        File prefsDir = new File(datadirPath, "shared_prefs");
-        File prefsFile = new File(prefsDir, Utils.MYPREFS + ".xml");
-        if (prefsFile.exists()) {
-            prefsFile.setReadable(true, false);
-        }
-
-        // nougat+ extra fix
-        File dataDir = new File(datadirPath);
-        if (dataDir.exists() && dataDir.isDirectory()) {
-            dataDir.setReadable(true, false);
-            dataDir.setExecutable(true, false);
-        }
     }
 
     class UnlockReceiver extends BroadcastReceiver {
