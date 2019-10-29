@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/WhatsappExtensions_10_2019.iml" filepath="$PROJECT_DIR$/WhatsappExtensions_10_2019.iml" />
+      <module fileurl="file://$PROJECT_DIR$/WhatsappExtensions.iml" filepath="$PROJECT_DIR$/WhatsappExtensions.iml" />
       <module fileurl="file://$PROJECT_DIR$/libs/android-crop/android-crop.iml" filepath="$PROJECT_DIR$/libs/android-crop/android-crop.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/libs/libs.iml" filepath="$PROJECT_DIR$/libs/libs.iml" />

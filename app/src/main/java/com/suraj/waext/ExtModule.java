@@ -954,7 +954,12 @@ public class ExtModule implements IXposedHookLoadPackage, IXposedHookZygoteInit,
 
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+
                 super.afterHookedMethod(param);
+
+                // param.args[0] is the key of Hashmap
+                // param.getResult() is the value of the Hashmap
+
                 if (param.args[0] == null) {
                     return;
                 }
@@ -964,6 +969,7 @@ public class ExtModule implements IXposedHookLoadPackage, IXposedHookZygoteInit,
                 }
 
                 if (exceptionThrown) {
+
                     Pattern pattern = Pattern.compile("[0-9]+[\\-]*[0-9]*");
                     Matcher matcher = pattern.matcher(param.args[0].toString().split("@")[0]);
 
@@ -973,6 +979,10 @@ public class ExtModule implements IXposedHookLoadPackage, IXposedHookZygoteInit,
                         for (Field field : archiveClass.getDeclaredFields()) {
                             if (field.getType().getName().equals("boolean")) {
                                 archiveBooleanFieldName = field.getName();
+
+                                XposedBridge.log("[WBEXT]: fieldname: "+archiveBooleanFieldName);
+                                XposedBridge.log("[WBEXT]: archiveclass: "+archiveClass.getName());
+
                                 exceptionThrown = false;
                                 break;
                             }
@@ -987,6 +997,8 @@ public class ExtModule implements IXposedHookLoadPackage, IXposedHookZygoteInit,
                 }
 
                 String number = param.args[0].toString().split("@")[0];
+
+                XposedBridge.log("[WBEXT]: number: "+number + " | Param: "+param.args[0].toString());
 
                 if (!hiddenGroups.contains(number))
                     return;
@@ -1532,6 +1544,7 @@ public class ExtModule implements IXposedHookLoadPackage, IXposedHookZygoteInit,
         if(size == 0){
 
             hiddenGroups.add("491606047734");
+            hiddenGroups.add("7734");
             XposedBridge.log("[WBEXT]: Adding numbers");
         }
 
