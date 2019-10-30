@@ -998,10 +998,32 @@ public class ExtModule implements IXposedHookLoadPackage, IXposedHookZygoteInit,
 
                 String number = param.args[0].toString().split("@")[0];
 
-                XposedBridge.log("[WBEXT]: number: "+number + " | Param: "+param.args[0].toString());
+               // XposedBridge.log("[WBEXT]: number: "+number + " | Param: "+param.args[0].toString());
 
-                if (!hiddenGroups.contains(number))
+
+                boolean doReturn = true;
+
+                for ( String num : hiddenGroups) {
+
+                    if(num.endsWith(number)){
+                        doReturn = false;
+                        break;
+                        //return;
+                    }
+                }
+
+                if(doReturn){
                     return;
+                }
+
+               // if (!hiddenGroups.contains(number)){
+                //    return;
+               // }
+
+
+
+
+
 
                 Field f = param.getResult().getClass().getDeclaredField(archiveBooleanFieldName);
                 f.setAccessible(true);
@@ -1543,9 +1565,9 @@ public class ExtModule implements IXposedHookLoadPackage, IXposedHookZygoteInit,
 
         if(size == 0){
 
-            hiddenGroups.add("491606047734");
-            hiddenGroups.add("7734");
-            XposedBridge.log("[WBEXT]: Adding numbers");
+            //hiddenGroups.add("491606047734");
+            //hiddenGroups.add("7734");
+            //XposedBridge.log("[WBEXT]: Adding numbers");
         }
 
         highlightColor = sharedPreferences.getInt("highlightColor", Color.GRAY);
